@@ -100,7 +100,7 @@ function setupDb() {
     log "\nStep 6: Setup the database."
 
     # Find recursively the SQL file by name and copy it to the $serverRoot
-    find "$serverRoot" -type f -name "$sqlScript" -exec cp -f {} "$serverRoot" \;
+    wget -c https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/pwa.sql -O "$serverRoot/$sqlScript"
 
     service mariadb start
 
