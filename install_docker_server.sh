@@ -170,7 +170,7 @@ function setupWebTools() {
         apt install -y php php-mysql php-curl mcrypt
 
         # Install register.php
-        wget -c https://raw.githubusercontent.com/hoangnguyent/pwWebTools/master/register.php -O "$websitePath"
+        wget -c https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/register.php -O "$websitePath/register.php"
 
         chmod 777 -R "$websitePath"
 
