@@ -210,14 +210,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
 
             <!-- Display the captcha image -->
             <div class="form-group">
-                <label for="captcha">Captcha:</label>
+                <!--<label for="captcha">Captcha:</label>-->
                 <?php
                 // Generate captcha code and store it in the session
                 $_SESSION['captcha'] = generateCaptchaCode();
 
                 // Output the captcha image directly in the HTML
                 // echo '<img src="data:image/png;base64,' . base64_encode(generateCaptchaImage($_SESSION['captcha'])) . '" alt="Captcha Image">';
-                // ?>
+                ?>
                 <!--
                 <input class="form-control" type="text" name="captcha" id="captcha" required>
                 -->
