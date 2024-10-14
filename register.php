@@ -188,8 +188,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
 <body>
     <div class="container mt-5">
         <form id="register" action="<?= $_SERVER['PHP_SELF']; ?>" method="post" class="col-md-6 offset-md-3">
-            <h3 class="mb-4 text-center">Registration on the server</h3>
-            <h3 class="text-center">Perfect World Server Name Here</h3>
+            <h3 class="mb-4 text-center">Perfect World Registration</h3>
 
             <div class="form-group">
                 <label for="login">Login:</label>
@@ -205,7 +204,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
             </div>
             <div class="form-group">
                 <label for="email">E-Mail:</label>
-                <input class="form-control" type="email" name="email" id="email" required>
+                <input class="form-control" type="email" name="email" id="email" required value="your@gmail.com">
             </div>
 
             <!-- Display the captcha image -->
