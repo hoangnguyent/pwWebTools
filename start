@@ -1,0 +1,119 @@
+#!/bin/sh
+
+AuPath=/root/pwserver/authd
+PWPath=/root/pwserver
+LogsPath=/root/pwserver/logs
+rm -rf /root/pwserver/logs/*
+echo "##############################     Start starting！  #############################"
+echo "##############################  - Enable account data service #############################"
+#	Account Data Service	#
+cd $AuPath
+nohup ./authd >$LogsPath/authd.log 2>&1 &
+sleep 1
+AU=`ps -ef | grep authd | grep -v grep | awk '{print $2}'`
+if [ "$AU" != "" ]; then
+   echo "Account data service started successfully!"
+else
+   echo "Account data service startup failed!"
+fi
+echo "##############################  - Start the role data service #############################"
+#	Role Data Service	#
+cd $PWPath/gamedbd/
+nohup ./gamedbd gamesys.conf >$LogsPath/gamedbd.log 2>&1 &
+sleep 1
+DB=`ps -ef | grep gamedbd | grep -v grep | awk '{print $2}'`
+if [ "$DB" != "" ]; then
+   echo "The role data service was started successfully!"
+else
+   echo "Role data service startup failed!"
+fi
+echo "##############################  - Start anti-addiction service #############################"
+#	Anti-addiction service	#
+cd $PWPath/gacd/
+nohup ./gacd gamesys.conf >$LogsPath/gacd.log 2>&1 &
+sleep 1
+GACD=`ps -ef | grep gacd | grep -v grep | awk '{print $2}'`
+if [ "$GACD" != "" ]; then
+echo "The anti-addiction service was successfully started!"
+else
+echo "Prevent addiction service startup failure!"
+fi
+echo "##############################  - Start the role name service #############################"
+#	Unique Name Service	#
+cd $PWPath/uniquenamed
+nohup ./uniquenamed gamesys.conf >$LogsPath/uniquename.log 2>&1 &
+sleep 1
+UN=`ps -ef | grep uniquenamed | grep -v grep | awk '{print $2}'`
+if [ "$UN" != "" ]; then
+   echo "Role name service started successfully!"
+else
+   echo "Role name service startup failed!"
+fi
+
+echo "##############################  - Start a gang information service #############################"
+#	Gang Services	#
+cd $PWPath/gfactiond/
+nohup ./gfactiond gamesys.conf >$LogsPath/gfactiond.log 2>&1 &
+sleep 1
+GF=`ps -ef | grep gfactiond | grep -v grep | awk '{print $2}'`
+if [ "$GF" != "" ]; then
+   echo "Gang information service startup successfully!"
+else
+   echo "Gang information service startup failed!"
+fi
+echo "##############################  - Start the log monitoring service #############################"
+#	Log Service	#
+cd $PWPath/logservice
+nohup ./logservice logservice.conf >$LogsPath/logservice.log 2>&1 &
+sleep 1
+LOGS=`ps -ef | grep logservice | grep -v grep | awk '{print $2}'`
+if [ "$LOGS" != "" ]; then
+   echo "The log monitoring service was started successfully!"
+else
+   echo "The log monitoring service was started failed!"
+fi
+
+echo "##############################  - Start the login communication service #############################"
+#	Login Service	#
+cd $PWPath/glinkd/
+nohup ./glinkd gamesys.conf 1 >$LogsPath/glinkd1.log 2>&1 &
+# LD_PRELOAD=./preload.so nohup ./glinkd gamesys.conf 2 >$LogsPath/glinkd2.log 2>&1 &
+#nohup ./glinkd39 gamesys.conf 3 >$LogsPath/glinkd3.log 2>&1 &
+#nohup ./glinkd gamesys.conf 4 >$LogsPath/glinkd3.log 2>&1 &
+sleep 1
+LINK=`ps -ef | grep glinkd | grep -v grep | awk '{print $2}'`
+if [ "$LINK" != "" ]; then
+   echo "Login communication service started successfully!"
+else
+   echo "Login communication service started failed!"
+fi
+echo "##############################  - Start the replica map service #############################"
+#	Map services	#
+cd $PWPath/gamed/
+LD_PRELOAD=./libtask.so nohup ./gs gs01 >$LogsPath/gs01.log 2>&1 &
+sleep 1
+LD_PRELOAD=./libtask.so nohup ./gs is61 >$LogsPath/is61.log 2>&1 &
+#D_PRELOAD=./libtask.so nohup ./gs is68 >$LogsPath/is68.log 2>&1 &
+# nohup ./gs is47 >$LogsPath/is47.log 2>&1 &
+# nohup ./gs bg01 >$LogsPath/bg01.log 2>&1 &
+# nohup ./gs bg02 >$LogsPath/bg02.log 2>&1 &
+# sleep 10
+GS=`ps -ef | grep gs | grep -v grep | awk '{print $2}'`
+if [ "$GS" != "" ]; then
+   echo "The replica map service was started successfully!"
+else
+   echo "The replica map service was started failed!"
+fi
+
+echo "##############################  - Start basic information service #############################"
+#	Basic Services	#
+cd $PWPath/gdeliveryd/
+nohup ./gdeliveryd gamesys.conf >$LogsPath/gdeliveryd.log 2>&1 &
+sleep 1
+GD=`ps -ef | grep gdeliveryd | grep -v grep | awk '{print $2}'`
+if [ "$GD" != "" ]; then
+   echo "Basic information service started successfully!"
+else
+   echo "Basic information service started failed!"
+fi
+echo "##############################    Game server startup completed！ #############################"

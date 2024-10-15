@@ -306,22 +306,33 @@ function setupWebTools() {
     setupRegisterPhp
     translateIwebMapNamesIntoVietnamese
     setupIwebJava
-    generateStartAndStopScript
+    prepareStartAndStopScript
 
     # Other tools
 }
 
-function generateStartAndStopScript(){
+function prepareStartAndStopScript(){
 
-    # Start game server and iweb with an instance name must be 'pwAdmin'. This name is hard code in file "/home/server"
+    # TODO: file /home/server hình như không work.
+
+    # download start/stop script
+    wget -c https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/start -O "/start"
+    wget -c https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/stop -O "/stop"
+
+    # Override paths in these files
+    sed -i 's#AuPath=/root/pwserver/authd#AuPath='"$DIR_GAME_LOCATION"'/authd#g' "/start"
+    sed -i 's#PWPath=/root/pwserver#PWPath='"$DIR_GAME_LOCATION"'#g' "/start"
+    sed -i 's#LogsPath=/root/pwserver/logs#LogsPath='"$DIR_GAME_LOCATION"'/logs#g' "/start"
+    sed -i 's#rm -rf /root/pwserver/logs/*#rm -rf '"$DIR_GAME_LOCATION"'/logs/*#g' "/start"
+
+    # Start DB and Apache.
     echo -e "service mariadb start
-service apache2 start
-$DIR_GAME_LOCATION/server pwAdmin start" > /start
+service apache2 start" >> /start
     chmod 777 /start
 
-    echo -e "$DIR_GAME_LOCATION/server pwAdmin stop
-service apache2 stop
-service mariadb stop" > /stop
+    # Stop DB and Apache.
+    echo -e "service apache2 stop
+service mariadb stop" >> /stop
     chmod 777 /stop
 
 }
@@ -372,6 +383,12 @@ function setupGameServer(){
     sed -i 's#fd_statinfom	=	/home/logs/statinfom#fd_statinfom	=	'"$DIR_GAME_LOCATION"'/logs/statinfom#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
     sed -i 's#fd_statinfoh	=	/home/logs/statinfoh#fd_statinfoh	=	'"$DIR_GAME_LOCATION"'/logs/statinfoh#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
     sed -i 's#fd_statinfod	=	/home/logs/statinfod#fd_statinfod	=	'"$DIR_GAME_LOCATION"'/logs/statinfod#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+
+    # Override /home/chmod.sh
+    echo -e 'echo "wirte the chmod 777 to '"$DIR_GAME_LOCATION"'/*"
+sleep 3
+chmod 777 -R '"$DIR_GAME_LOCATION"'/*
+echo "Done.."' > "$DIR_GAME_LOCATION/chmod.sh"
 
     # Find table.xml in the working folder, and then copy it to /etc
     find $DIR_WORK -type f -name "table.xml" -exec cp -f {} "/etc" \;
