@@ -46,11 +46,16 @@ function installSeverPackages(){
 
     dpkg --add-architecture i386
     apt update
+    apt install -y sudo
     apt install -y dialog apt-utils > /dev/null 2>&1
-    apt install -y mc nano wget curl sed bash grep dpkg net-tools cron > /dev/null 2>&1
+    apt install -y mc nano wget curl sed bash grep dpkg net-tools ufw > /dev/null 2>&1
     # Are these necessary
     # apt install -y libstdc++5:i386 gcc-multilib zlib1g:i386 zlib1g libxml2:i386 libstdc++6:i386 > /dev/null 2>&1
     apt install -y p7zip-full > /dev/null 2>&1
+
+    # TODO: hình như cần mở firewall:
+    #sudo ufw allow 29000/tcp
+    #sudo ufw status hoặc iptables -A INPUT -p tcp --dport 29000 -j ACCEPT
 }
 
 function installDevPackages(){
@@ -315,14 +320,15 @@ function prepareStartAndStopScript(){
     # TODO: file /home/server hình như không work.
 
     # download start/stop script
-    wget -c https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/start -O "/start"
-    wget -c https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/stop -O "/stop"
+    wget -O /start https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/start
+    wget -O /stop https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/stop
 
     # Override paths in these files
     sed -i 's#AuPath=/root/pwserver/authd#AuPath='"$DIR_GAME_LOCATION"'/authd#g' "/start"
     sed -i 's#PWPath=/root/pwserver#PWPath='"$DIR_GAME_LOCATION"'#g' "/start"
     sed -i 's#LogsPath=/root/pwserver/logs#LogsPath='"$DIR_GAME_LOCATION"'/logs#g' "/start"
-    sed -i 's#rm -rf /root/pwserver/logs/*#rm -rf '"$DIR_GAME_LOCATION"'/logs/*#g' "/start"
+    sed -i 's#rm -rf /root/pwserver/logs/#rm -rf '"$DIR_GAME_LOCATION"'/logs/#g' "/start"
+    #sed -i 's#nohup .#nohup '"$DIR_GAME_LOCATION"'#g' "/start"
 
     # Start DB and Apache.
     echo -e "service mariadb start
@@ -333,6 +339,26 @@ service apache2 start" >> /start
     echo -e "service apache2 stop
 service mariadb stop" >> /stop
     chmod 777 /stop
+
+    # Grant permission to all services
+    directories=(
+        "authd"
+        "gacd"
+        "gamed"
+        "gamedbd"
+        "gdeliveryd"
+        "gfactiond"
+        "glinkd"
+        "logservice"
+        "uniquenamed"
+    )
+
+    for dir in "${directories[@]}"; do
+        chmod -R 777 "$DIR_GAME_LOCATION/$dir"
+    done
+
+    chmod 777 "$DIR_GAME_LOCATION"/gacd_start
+    chmod 777 "$DIR_GAME_LOCATION"/gdeliveryd_start
 
 }
 

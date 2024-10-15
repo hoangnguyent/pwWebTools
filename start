@@ -23,9 +23,9 @@ nohup ./gamedbd gamesys.conf >$LogsPath/gamedbd.log 2>&1 &
 sleep 1
 DB=`ps -ef | grep gamedbd | grep -v grep | awk '{print $2}'`
 if [ "$DB" != "" ]; then
-   echo "The role data service was started successfully!"
+   echo "Role data service started successfully!"
 else
-   echo "Role data service startup failed!"
+   echo "Role data service started failed!"
 fi
 echo "##############################  - Start anti-addiction service #############################"
 #	Anti-addiction service	#
@@ -36,7 +36,7 @@ GACD=`ps -ef | grep gacd | grep -v grep | awk '{print $2}'`
 if [ "$GACD" != "" ]; then
 echo "The anti-addiction service was successfully started!"
 else
-echo "Prevent addiction service startup failure!"
+echo "Prevent addiction service started failure!"
 fi
 echo "##############################  - Start the role name service #############################"
 #	Unique Name Service	#
@@ -47,7 +47,7 @@ UN=`ps -ef | grep uniquenamed | grep -v grep | awk '{print $2}'`
 if [ "$UN" != "" ]; then
    echo "Role name service started successfully!"
 else
-   echo "Role name service startup failed!"
+   echo "Role name service started failed!"
 fi
 
 echo "##############################  - Start a gang information service #############################"
@@ -57,9 +57,9 @@ nohup ./gfactiond gamesys.conf >$LogsPath/gfactiond.log 2>&1 &
 sleep 1
 GF=`ps -ef | grep gfactiond | grep -v grep | awk '{print $2}'`
 if [ "$GF" != "" ]; then
-   echo "Gang information service startup successfully!"
+   echo "Gang information service started successfully!"
 else
-   echo "Gang information service startup failed!"
+   echo "Gang information service started failed!"
 fi
 echo "##############################  - Start the log monitoring service #############################"
 #	Log Service	#
@@ -68,9 +68,9 @@ nohup ./logservice logservice.conf >$LogsPath/logservice.log 2>&1 &
 sleep 1
 LOGS=`ps -ef | grep logservice | grep -v grep | awk '{print $2}'`
 if [ "$LOGS" != "" ]; then
-   echo "The log monitoring service was started successfully!"
+   echo "The log monitoring service started successfully!"
 else
-   echo "The log monitoring service was started failed!"
+   echo "The log monitoring service started failed!"
 fi
 
 echo "##############################  - Start the login communication service #############################"
