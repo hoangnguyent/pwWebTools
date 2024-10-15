@@ -6,34 +6,34 @@ echo " - Closing"
 ###################################################################
 echo -n "Shut down the backend server..."
 killall -9 uniquenamed 
-echo "The background controller is closed！"
+echo "The background controller is closed!"
 ###################################################################
 ###################################################################
 echo -n "Close login server..."
 killall -9 authd 
 killall -9 loader
 kill -9 `ps -ef | grep authd | grep -v grep | awk '{print $2}'`
-echo "Server Login to shut down！"
+echo "Server Login to shut down!"
 ###################################################################
 ###################################################################
 echo -n "Shutting down the game server..."
 killall -9 gamedbd 
-echo "Game server to shut down！"
+echo "Game server to shut down!"
 ###################################################################
 ###################################################################
 echo -n "Stop reading file settings..."
 killall -9 gdeliveryd 
-echo "File setting to stop reading！"
+echo "File setting to stop reading!"
 ###################################################################
 ###################################################################
 echo -n "Shut down the system..."
 killall -9 gfactiond 
-echo "System to shut down！"
+echo "System to shut down!"
 ###################################################################
 ###################################################################
 echo -n "Closing account server..."
 killall -9 gacd 
-echo "Account data is kept safe！"
+echo "Account data is kept safe!"
 ###################################################################
 ###################################################################
 echo -n "Closing server connection..."
@@ -41,7 +41,7 @@ killall -9 glinkd
 #killall -9 glinkd2 
 #killall -9 glinkd3
 #killall -9 glinkd4
-echo "Server connection to disconnect！"
+echo "Server connection to disconnect!"
 ###################################################################
 ###################################################################
 # Close all maps
@@ -49,7 +49,7 @@ echo "Server connection to disconnect！"
 ###################################################################
 echo -n "Close all game maps..."
 killall -9 gs
-echo "All maps are closed！"
+echo "All maps are closed!"
 ###################################################################
 ###################################################################
 # Disable logging service
@@ -57,8 +57,8 @@ echo "All maps are closed！"
 ###################################################################
 echo -n "Disable logging service..."
 killall -9 logservice
-echo "Log service is turned off！"
+echo "Log service is turned off!"
 ###################################################################
 ###################################################################
-echo "Perfect World server has been shut down！"
+echo "Perfect World server has been shut down!"
 
