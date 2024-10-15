@@ -117,3 +117,4 @@ else
    echo "Basic information service started failed!"
 fi
 echo "##############################    Game server startup completed！ #############################"
+

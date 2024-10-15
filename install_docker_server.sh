@@ -306,7 +306,6 @@ function setupWebTools() {
     setupRegisterPhp
     translateIwebMapNamesIntoVietnamese
     setupIwebJava
-    prepareStartAndStopScript
 
     # Other tools
 }
@@ -454,6 +453,7 @@ function main(){
 
     log "Step 7: Setup the Perfect World Server."
     setupGameServer
+    prepareStartAndStopScript
 
     log "Step 8: Clean up."
     cleanUp
