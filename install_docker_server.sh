@@ -25,13 +25,13 @@ pwAdminRawPw="pwadmin"
 pwAdminEmail="pwadmin@gmail.com"
 
 currentSQLDate=$(date +'%F %T');
+logfile="/setup.log"
 
 # Define bash functions
 function log(){
     local message=$1
-    echo "$message" | tee -a "/setup.log"
+    echo "$message" | tee -a "$logfile"
     # example of use: log "This is a log message"
-    # TODO: stream log to file
 }
 
 function finallyExit(){
@@ -190,8 +190,7 @@ function setupIwebJava(){
 
 function translateIwebMapNamesIntoVietnamese() {
 
-    # TODO: add dòng này vào đầu trang jsp này, để hiển thị UTF-8:
-    #<%@page contentType="text/html; charset=UTF-8" %>
+    sed -i '1i <%@page contentType="text/html; charset=UTF-8" %>' "$DIR_GAME_LOCATION/pwadmin/webapps/pwadmin/serverctrl.jsp" #to display UTF-8
 
     sed -i "s/City of Abominations/Minh Thú Thành/g" "$DIR_GAME_LOCATION/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s/Secret Passage/Anh Hùng Trủng/g" "$DIR_GAME_LOCATION/pwadmin/webapps/pwadmin/serverctrl.jsp"
@@ -313,14 +312,16 @@ function setupWebTools() {
 }
 
 function generateStartAndStopScript(){
-    echo -e "service mariadb start" >> /start
-    echo -e "service apache2 start" >> /start
-    echo -e "$DIR_GAME_LOCATION/server pwAdmin start" >> /start
+
+    # Start game server and iweb with an instance name must be 'pwAdmin'. This name is hard code in file "/home/server"
+    echo -e "service mariadb start
+service apache2 start
+$DIR_GAME_LOCATION/server pwAdmin start" > /start
     chmod 777 /start
 
-    echo -e "$DIR_GAME_LOCATION/server pwAdmin stop" >> /stop
-    echo -e "service apache2 stop" >> /stop
-    echo -e "service mariadb stop" >> /stop
+    echo -e "$DIR_GAME_LOCATION/server pwAdmin stop
+service apache2 stop
+service mariadb stop" > /stop
     chmod 777 /stop
 
 }
@@ -345,6 +346,33 @@ function setupGameServer(){
 127.0.0.1	LogServer
 127.0.0.1	AUDATA" > /etc/hosts
 
+    # Override config in /home/authd/authd.conf
+    sed -i 's#mtrace				=	/home/authd/mtrace.authd#mtrace				=	'"$DIR_GAME_LOCATION"'/home/authd/mtrace.authd#g' "$DIR_GAME_LOCATION/authd/authd.conf"
+
+    # Override config in /home/gamed/gs.conf
+    sed -i 's#Root				= /root/pwserver/gamed/config#Root				=	'"$DIR_GAME_LOCATION"'/gamed/config#g' "$DIR_GAME_LOCATION/gamed/gs.conf"
+
+    # Override config in /home/gamedbd/gamesys.conf
+    sed -i 's#homedir			= /home/gamedbd/dbhome#homedir			=	'"$DIR_GAME_LOCATION"'/gamedbd/dbhome#g' "$DIR_GAME_LOCATION/gamedbd/gamesys.conf"
+    sed -i 's#backupdir		=	/home/gamedbd/backup#backupdir		=	'"$DIR_GAME_LOCATION"'/gamedbd/backup#g' "$DIR_GAME_LOCATION/gamedbd/gamesys.conf"
+    sed -i 's#homedir			=	/home/gamedbd/dbhomewdb#homedir			=	'"$DIR_GAME_LOCATION"'/home/gamedbd/dbhomewdb#g' "$DIR_GAME_LOCATION/gamedbd/gamesys.conf"
+
+    # Override config in /home/uniquenamed/gamesys.conf
+    sed -i 's#homedir			=	/root/pwserver/uniquenamed/uname#homedir			=	'"$DIR_GAME_LOCATION"'/uniquenamed/uname#g' "$DIR_GAME_LOCATION/uniquenamed/gamesys.conf"
+    sed -i 's#backupdir		=	/root/pwserver/uniquenamed/uname#backupdir		=	'"$DIR_GAME_LOCATION"'/uniquenamed/uname#g' "$DIR_GAME_LOCATION/uniquenamed/gamesys.conf"
+    sed -i 's#backupdir		=	/root/pwserver/uniquenamed/unamewdbbackup#backupdir		=	backupdir		=	'"$DIR_GAME_LOCATION"'/uniquenamed/unamewdbbackup#g' "$DIR_GAME_LOCATION/uniquenamed/gamesys.conf"
+
+    # Override config in home/logservice/logservice.conf
+    sed -i 's#fd_err			=	/home/logs/world2.err#fd_err			=	'"$DIR_GAME_LOCATION"'/logs/world2.err#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+    sed -i 's#fd_log			=	/home/logs/world2.log#fd_log			=	'"$DIR_GAME_LOCATION"'/logs/world2.log#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+    sed -i 's#fd_formatlog	=	/home/logs/world2.formatlog#fd_formatlog	=	'"$DIR_GAME_LOCATION"'/logs/world2.formatlog#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+    sed -i 's#fd_trace		=	/home/logs/world2.trace#fd_trace		=	'"$DIR_GAME_LOCATION"'/logs/world2.trace#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+    sed -i 's#fd_chat			=	/home/logs/world2.chat#fd_chat			=	'"$DIR_GAME_LOCATION"'/logs/world2.chat#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+    sed -i 's#fd_cash			=	/home/logs/world2.cash#fd_cash			=	'"$DIR_GAME_LOCATION"'/logs/world2.cash#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+    sed -i 's#fd_statinfom	=	/home/logs/statinfom#fd_statinfom	=	'"$DIR_GAME_LOCATION"'/logs/statinfom#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+    sed -i 's#fd_statinfoh	=	/home/logs/statinfoh#fd_statinfoh	=	'"$DIR_GAME_LOCATION"'/logs/statinfoh#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+    sed -i 's#fd_statinfod	=	/home/logs/statinfod#fd_statinfod	=	'"$DIR_GAME_LOCATION"'/logs/statinfod#g' "$DIR_GAME_LOCATION/logservice/logservice.conf"
+
     # Find table.xml in the working folder, and then copy it to /etc
     find $DIR_WORK -type f -name "table.xml" -exec cp -f {} "/etc" \;
 
@@ -357,7 +385,7 @@ function setupGameServer(){
     cp -R "$DIR_GAME_LOCATION"/update/opt/* /opt/
 
     chmod 777 "$DIR_WORK"/etc/authd.conf
-    #chmod 777 "$DIR_WORK"/etc/crontab
+    chmod 777 "$DIR_WORK"/etc/crontab
     chmod 777 "$DIR_WORK"/etc/gmopgen.xml
     chmod 777 "$DIR_WORK"/etc/GMserver.conf
     chmod 777 "$DIR_WORK"/etc/hosts
@@ -375,9 +403,6 @@ function setupGameServer(){
     # gshopsev2.data
     # tasks.data
 
-    # Start game server and iweb with an instance name must be 'pwAdmin'. This name is hard code in file "/home/server"
-    $DIR_GAME_LOCATION/server pwAdmin start
-
     # TODO: load default map gs01, is61, is69
 }
 
@@ -391,24 +416,24 @@ function main(){
     trap finallyExit EXIT
 
     log "Step 1: Install the required ubuntu packages and i386 libs."
-    installSeverPackages
+    #installSeverPackages
 
     log "Step 2: Install the development related packages (apache2, mariaDB, java)."
-    installDevPackages
-    switchTimezone
+    #installDevPackages
+    #switchTimezone
 
     log "Step 3: Download Perfect World Server."
-    downloadGameServer
+    #downloadGameServer
 
     log "Step 4: Extract the Perfect World Server."
-    extractGameServer
+    #extractGameServer
 
     log "Step 5: Setup the database."
-    setupDb
-    enableToConnectDbFromOutsideContainer
+    #setupDb
+    #enableToConnectDbFromOutsideContainer
 
     log "Step 6: Setup the web tools."
-    setupWebTools
+    #setupWebTools
 
     log "Step 7: Setup the Perfect World Server."
     setupGameServer
