@@ -55,5 +55,6 @@ cd $PW_PATH/gamed; ./gs is69 >$PW_PATH/logs/game1.log &
 echo "=== DONE! ==="
 service mariadb start
 service apache2 start
+$PW_PATH/server pwAdmin start
 sleep 10
 
