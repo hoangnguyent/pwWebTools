@@ -1,120 +1,59 @@
 #!/bin/sh
-
-AuPath=/root/pwserver/authd
-PWPath=/root/pwserver
-LogsPath=/root/pwserver/logs
-rm -rf /root/pwserver/logs/*
-echo "##############################     Start starting!  #############################"
-echo "##############################  - Enable account data service #############################"
-#	Account Data Service	#
-cd $AuPath
-nohup ./authd >$LogsPath/authd.log 2>&1 &
-sleep 1
-AU=`ps -ef | grep authd | grep -v grep | awk '{print $2}'`
-if [ "$AU" != "" ]; then
-   echo "Account data service started successfully!"
+PW_PATH=/root
+if [ ! -d $PW_PATH/logs ]; then
+mkdir $PW_PATH/logs
 else
-   echo "Account data service startup failed!"
+  rm $PW_PATH/logs/*.log
 fi
-echo "##############################  - Start the role data service #############################"
-#	Role Data Service	#
-cd $PWPath/gamedbd/
-nohup ./gamedbd gamesys.conf >$LogsPath/gamedbd.log 2>&1 &
+echo "=== LOGSERVICE ==="
+cd $PW_PATH/logservice; ./logservice logservice.conf >$PW_PATH/logs/logservice.log &
 sleep 1
-DB=`ps -ef | grep gamedbd | grep -v grep | awk '{print $2}'`
-if [ "$DB" != "" ]; then
-   echo "Role data service started successfully!"
-else
-   echo "Role data service started failed!"
-fi
-echo "##############################  - Start anti-addiction service #############################"
-#	Anti-addiction service	#
-cd $PWPath/gacd/
-nohup ./gacd gamesys.conf >$LogsPath/gacd.log 2>&1 &
+echo "=== DONE! ==="
+echo ""
+echo "=== UNIQUENAMED ==="
+cd $PW_PATH/uniquenamed; ./uniquenamed gamesys.conf >$PW_PATH/logs/uniquenamed.log &
 sleep 1
-GACD=`ps -ef | grep gacd | grep -v grep | awk '{print $2}'`
-if [ "$GACD" != "" ]; then
-echo "The anti-addiction service was successfully started!"
-else
-echo "Prevent addiction service started failure!"
-fi
-echo "##############################  - Start the role name service #############################"
-#	Unique Name Service	#
-cd $PWPath/uniquenamed
-nohup ./uniquenamed gamesys.conf >$LogsPath/uniquename.log 2>&1 &
+echo "=== DONE! ==="
+echo ""
+echo "=== AUTH ==="
+cd $PW_PATH/authd/build/; ./authd &
+sleep 3
+echo "=== DONE! ==="
+echo ""
+echo "=== GAMEDBD ==="
+cd $PW_PATH/gamedbd; ./gamedbd gamesys.conf >$PW_PATH/logs/gamedbd.log &
 sleep 1
-UN=`ps -ef | grep uniquenamed | grep -v grep | awk '{print $2}'`
-if [ "$UN" != "" ]; then
-   echo "Role name service started successfully!"
-else
-   echo "Role name service started failed!"
-fi
-
-echo "##############################  - Start a gang information service #############################"
-#	Gang Services	#
-cd $PWPath/gfactiond/
-nohup ./gfactiond gamesys.conf >$LogsPath/gfactiond.log 2>&1 &
+echo "=== DONE! ==="
+echo ""
+echo "=== GACD ==="
+cd $PW_PATH/gacd; ./gacd gamesys.conf >$PW_PATH/logs/gacd.log &
 sleep 1
-GF=`ps -ef | grep gfactiond | grep -v grep | awk '{print $2}'`
-if [ "$GF" != "" ]; then
-   echo "Gang information service started successfully!"
-else
-   echo "Gang information service started failed!"
-fi
-echo "##############################  - Start the log monitoring service #############################"
-#	Log Service	#
-cd $PWPath/logservice
-nohup ./logservice logservice.conf >$LogsPath/logservice.log 2>&1 &
+echo "=== DONE! ==="
+echo ""
+echo "=== GFACTIOND ==="
+cd $PW_PATH/gfactiond; ./gfactiond gamesys.conf >$PW_PATH/logs/gfactiond.log &
 sleep 1
-LOGS=`ps -ef | grep logservice | grep -v grep | awk '{print $2}'`
-if [ "$LOGS" != "" ]; then
-   echo "The log monitoring service started successfully!"
-else
-   echo "The log monitoring service started failed!"
-fi
-
-echo "##############################  - Start the login communication service #############################"
-#	Login Service	#
-cd $PWPath/glinkd/
-nohup ./glinkd gamesys.conf 1 >$LogsPath/glinkd1.log 2>&1 &
-# LD_PRELOAD=./preload.so nohup ./glinkd gamesys.conf 2 >$LogsPath/glinkd2.log 2>&1 &
-#nohup ./glinkd39 gamesys.conf 3 >$LogsPath/glinkd3.log 2>&1 &
-#nohup ./glinkd gamesys.conf 4 >$LogsPath/glinkd3.log 2>&1 &
+echo "=== DONE! ==="
+echo ""
+echo "=== GDELIVERYD ==="
+cd $PW_PATH/gdeliveryd; ./gdeliveryd gamesys.conf >$PW_PATH/logs/gdeliveryd.log &
 sleep 1
-LINK=`ps -ef | grep glinkd | grep -v grep | awk '{print $2}'`
-if [ "$LINK" != "" ]; then
-   echo "Login communication service started successfully!"
-else
-   echo "Login communication service started failed!"
-fi
-echo "##############################  - Start the replica map service #############################"
-#	Map services	#
-cd $PWPath/gamed/
-LD_PRELOAD=./libtask.so nohup ./gs gs01 >$LogsPath/gs01.log 2>&1 &
-sleep 1
-LD_PRELOAD=./libtask.so nohup ./gs is61 >$LogsPath/is61.log 2>&1 &
-#D_PRELOAD=./libtask.so nohup ./gs is68 >$LogsPath/is68.log 2>&1 &
-# nohup ./gs is47 >$LogsPath/is47.log 2>&1 &
-# nohup ./gs bg01 >$LogsPath/bg01.log 2>&1 &
-# nohup ./gs bg02 >$LogsPath/bg02.log 2>&1 &
-# sleep 10
-GS=`ps -ef | grep gs | grep -v grep | awk '{print $2}'`
-if [ "$GS" != "" ]; then
-   echo "The replica map service was started successfully!"
-else
-   echo "The replica map service was started failed!"
-fi
-
-echo "##############################  - Start basic information service #############################"
-#	Basic Services	#
-cd $PWPath/gdeliveryd/
-nohup ./gdeliveryd gamesys.conf >$LogsPath/gdeliveryd.log 2>&1 &
-sleep 1
-GD=`ps -ef | grep gdeliveryd | grep -v grep | awk '{print $2}'`
-if [ "$GD" != "" ]; then
-   echo "Basic information service started successfully!"
-else
-   echo "Basic information service started failed!"
-fi
-echo "##############################    Game server startup completed! #############################"
+echo "=== DONE! ==="
+echo ""
+echo "=== GLINKD ==="
+cd $PW_PATH/glinkd; ./glinkd gamesys.conf 1 >$PW_PATH/logs/glink.log &
+cd $PW_PATH/glinkd; ./glinkd gamesys.conf 2 >$PW_PATH/logs/glink2.log &
+cd $PW_PATH/glinkd; ./glinkd gamesys.conf 3 >$PW_PATH/logs/glink3.log &
+cd $PW_PATH/glinkd; ./glinkd gamesys.conf 4 >$PW_PATH/logs/glink4.log &
+sleep 3
+echo "=== DONE! ==="
+echo ""
+echo "=== LOAD MAPS ==="
+cd $PW_PATH/gamed; ./gs gs01 >$PW_PATH/logs/game1.log &
+cd $PW_PATH/gamed; ./gs is61 >$PW_PATH/logs/game1.log &
+cd $PW_PATH/gamed; ./gs is69 >$PW_PATH/logs/game1.log &
+echo "=== DONE! ==="
+service mariadb start
+service apache2 start
+sleep 10
 

@@ -1,0 +1,31 @@
+#!/bin/sh
+
+case "$1" in
+start)
+echo " * Starting xampp"
+/opt/lampp/lampp startmysql
+/opt/lampp/lampp startapache
+/root/.tomcat_start.sh > /dev/null
+;;
+
+stop)
+echo " * Stopping xampp"
+/opt/lampp/lampp stop
+/root/.tomcat_stop.sh
+;;
+
+restart)
+echo " * Restarting xampp"
+/opt/lampp/lampp reloadmysql
+/opt/lampp/lampp reloadapache
+/root/.tomcat_stop.sh
+/root/.tomcat_start.sh > /dev/null
+;;
+
+*)
+
+echo "Usage $0 [start|stop|restart]"
+exit 1
+esac
+
+exit 0

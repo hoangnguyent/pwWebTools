@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><?xml-stylesheet type="text/xsl" href="rpcalls.xsl"?>
+<application namespace="GNET">
+	<operation description="Switch player name and ID" name="Toggle_NameID" type="0"/>
+	<operation description="Invisible or invincible to enter the state" name="Hide_BeGod" type="1"/>
+	<operation description="Switch is online" name="Online_OrNot" type="2"/>
+	<operation description="Can secret language switch" name="Chat_OrNot" type="3"/>
+	<operation description="Move to a specific role in side" name="MoveTo_Role" type="4"/>
+	<operation description="Will specify the role of call to the GM side" name="Fetch_Role" type="5"/>
+	<operation description="Move to the specified location" name="Move_AsWill" type="6"/>
+	<operation description="NPC to move to the designated location" name="MoveTo_NPC" type="7"/>
+	<operation description="Move to the specified map (copy)" name="MoveTo_Map" type="8"/>
+	<operation description="Mobile speed" name="Enhance_Speed" type="9"/>
+	<operation description="Follow Players" name="Follow" type="10"/>
+	<operation description="Get online players list" name="ListUser" type="11"/>
+	<!--***  level-2 ***-->
+	<operation description="Forced offline" name="Force_Offline" type="100"/>
+	<operation description="Gag" name="Forbid_Talk" type="101"/>
+	<operation description="Prohibition of players, the players and the NPC trading" name="Forbid_Trade" type="102"/>
+	<operation description="Ban on the sale" name="Forbid_Sell" type="103"/>
+	<operation description="System Radio" name="Broadcast" type="104"/>
+	<operation description="Close game server" name="Shutdown_GameServer" type="105"/>
+	<!--*** level-3 ***-->
+	<operation description="Summon Monster" name="Summon_Monster" type="200"/>
+	<operation description="Disperse are called objects" name="Dispel_Summon" type="201"/>
+	<operation description="Camouflage" name="Pretend" type="202"/>
+	<operation description="GM Manager" name="GMMaster" type="203"/>
+	<operation description="Double Experience" name="DoubleExp" type="204"/>
+	<operation description="The number of concurrent connections" name="Lambda" type="205"/>
+	<operation description="Activities Manager" name="ActivityManager" type="206"/>
+	<operation description="Prohibit transactions between players" name="NoTrade" type="207"/>
+	<operation description="Prohibition of the auction action" name="NoAuction" type="208"/>
+	<operation description="Prohibition of mail operations" name="NoMail" type="209"/>
+	<operation description="Prohibition of gang operations" name="NoFaction" type="210"/>
+	<operation description="Double out of money" name="DoubleMoney" type="211"/>
+	<operation description="Double swap objects" name="DoubleObject" type="212"/>
+	<operation description="Double skill points" name="DoubleSP" type="213"/>
+	<operation description="Ban on the sale Dianka" name="NoSellPoint" type="214"/>
+
+	<!-- system department -->
+	<operation description="Modify the role" name="ModifyRoleInfo" type="501"/>
+	<operation description="View the server running" name="ViewStatus" type="502"/>
+	<operation description="View Log" name="ViewLog" type="503"/>
+	<operation description="Forced shutdown and restart the game server" name="ForceRestartGame" type="504"/>
+	<operation description="Forced shutdown and restart the database server" name="ForceRestartDB" type="505"/>
+	<operation description="ID Search" name="QueryRoleID" type="506"/>
+	<operation description="The role of information" name="QueryRoleInfo" type="507"/>
+	<operation description="The role of the state" name="QueryRoleStatus" type="508"/>
+	<operation description="Donated items to the specific role" name="Present" type="509"/>
+
+	<operation description="Record titles" name="GetUserForbids" type="510"/>
+	<operation description="Result Record" name="GetUserCardused" type="511"/>
+	<operation description="Balance inquiries" name="GetUserPoints" type="512"/>
+	<operation description="Modify the balance" name="UpdateUserPoint" type="513"/>
+	<operation description="Account Information" name="GetUserInfoByName" type="514"/>
+	<operation description="Account changes" name="UpdateUserInfoByName" type="515"/>
+	<operation description="Re-opened" name="UnkickUser" type="516"/>
+	<operation description="List of characters" name="GetRoleList" type="517"/>
+	<operation description="Change password" name="UpdateAccountPasswd" type="518"/>
+
+	<zone aid="1" delivery="127.0.0.1" gacdport="29712" id="1" location = "Feilvbin1" name = "WanMei1" url="http://192.168.56.101:8080/GMserver" url2=""/>
+	<zone aid="1" delivery="192.168.56.101" gacdport="29712" id="1" location="Brazil1" name="WanMei1" url="http://192.168.56.101:8080/GMserver" url2=""/>
+	<zone aid="1" delivery="127.0.0.1" gacdport="29712" id="2" location="Brazil2" name="WanMei2" url="http://192.168.56.101:8080/GMserver" url2=""/>
+	<zone aid="1" delivery="192.168.56.101" gacdport="29712" id="3" location="Brazil3" name="WanMei3" url="http://192.168.56.101:8080/iweb/gmservice" url2=""/>
+
+
+</application>

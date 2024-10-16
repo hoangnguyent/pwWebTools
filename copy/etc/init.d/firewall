@@ -1,0 +1,20 @@
+#!/bin/sh
+iptables -F
+iptables -P INPUT ACCEPT
+iptables -P FORWARD ACCEPT
+iptables -P OUTPUT ACCEPT
+iptables -A INPUT -p tcp -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT -p udp -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p tcp -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -p udp -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+iptables -A INPUT  -i lo  -j ACCEPT
+#open
+iptables -A INPUT -p tcp --dport 21 -j ACCEPT
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+iptables -A INPUT -p tcp --dport 8080 -j ACCEPT
+iptables -A INPUT -p tcp --dport 29001 -j ACCEPT
+iptables -A INPUT -p tcp --dport 29002 -j ACCEPT
+iptables -A INPUT -p tcp --dport 29003 -j ACCEPT
+iptables -A INPUT -p tcp --dport 29004 -j ACCEPT
+iptables -P INPUT DROP

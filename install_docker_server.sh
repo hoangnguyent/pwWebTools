@@ -7,7 +7,7 @@ timezone=GMT-7
 version=1.7.3
 
 # Target game zip to be download and extracted
-DIR_WORK=/root
+DIR_WORK=/
 DIR_GAME_LOCATION=$DIR_WORK/home # VERY IMPORTANT! this location can be different depends on your gameServer.zip structure.
 gameFolder="pw"
 gameDownloadUrl="https://drive.usercontent.google.com/download?id=1UebfhrwJIWfP5cZvdra1tNWVZb8Is9PE&export=download&authuser=0&confirm=t&uuid=10bc2449-8417-4b1d-8157-347fd1803c4f&at=AN_67v2QMLcZgDJuqkGLolMqHBg9:1728696167922"
@@ -20,9 +20,9 @@ dbName=pw
 sqlScript=pwa.sql
 
 # Define website configuration
-pwAdminUsername="pwadmin"
-pwAdminRawPw="pwadmin"
-pwAdminEmail="pwadmin@gmail.com"
+pwAdminUsername="admin"
+pwAdminRawPw="admin"
+pwAdminEmail="admin@gmail.com"
 
 currentSQLDate=$(date +'%F %T');
 logfile="/setup.log"
@@ -323,64 +323,15 @@ function prepareStartAndStopScript(){
     wget -O /start https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/start
     wget -O /stop https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/stop
 
-    # Override paths in these files
-    sed -i 's#AuPath=/root/pwserver/authd#AuPath='"$DIR_GAME_LOCATION"'/authd#g' "/start"
-    sed -i 's#PWPath=/root/pwserver#PWPath='"$DIR_GAME_LOCATION"'#g' "/start"
-    sed -i 's#LogsPath=/root/pwserver/logs#LogsPath='"$DIR_GAME_LOCATION"'/logs#g' "/start"
-    sed -i 's#rm -rf /root/pwserver/logs/#rm -rf '"$DIR_GAME_LOCATION"'/logs/#g' "/start"
-    #sed -i 's#nohup .#nohup '"$DIR_GAME_LOCATION"'#g' "/start"
-
-    # Start DB and Apache.
-    echo -e "service mariadb start
-service apache2 start" >> /start
-    chmod 777 /start
-
-    # Stop DB and Apache.
-    echo -e "service apache2 stop
-service mariadb stop" >> /stop
-    chmod 777 /stop
-
-    # Grant permission to all services
-    directories=(
-        "authd"
-        "gacd"
-        "gamed"
-        "gamedbd"
-        "gdeliveryd"
-        "gfactiond"
-        "glinkd"
-        "logservice"
-        "uniquenamed"
-    )
-
-    for dir in "${directories[@]}"; do
-        chmod -R 777 "$DIR_GAME_LOCATION/$dir"
-    done
-
-    chmod 777 "$DIR_GAME_LOCATION"/gacd_start
-    chmod 777 "$DIR_GAME_LOCATION"/gdeliveryd_start
+    # Override path in 'start' file
+    sed -i "/^#PW_PATH=/root#PW_PATH=/root/home" "/start"
 
 }
 
 function setupGameServer(){
 
-    # Edit file /etc/hosts to map addresses
-    echo "127.0.0.1	gm_server
-127.0.0.1	PW-Server
-127.0.0.1	aumanager
-127.0.0.1	manager
-127.0.0.1	link1
-127.0.0.1	game1
-127.0.0.1	game2
-127.0.0.1	delivery
-127.0.0.1	database
-127.0.0.1	backup
-127.0.0.1	auth
-127.0.0.1	audb
-127.0.0.1	gmserver
-127.0.0.1	LOCAL0
-127.0.0.1	LogServer
-127.0.0.1	AUDATA" > /etc/hosts
+    # Update file /etc/hosts, firewall
+    
 
     # Override config in /home/authd/authd.conf
     sed -i 's#mtrace				=	/home/authd/mtrace.authd#mtrace				=	'"$DIR_GAME_LOCATION"'/home/authd/mtrace.authd#g' "$DIR_GAME_LOCATION/authd/authd.conf"
@@ -421,6 +372,7 @@ echo "Done.."' > "$DIR_GAME_LOCATION/chmod.sh"
     # Override config in table.xml
     sed -i "/^<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql/c\<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql://$dbHost:3306/$dbName?useUnicode=true&amp;characterEncoding=ascii&amp;jdbcCompliantTruncation=false\" username=\"$dbUser\" password=\"$dbPassword\"/>" "/etc/table.xml"
 
+    # TODO: hãy kiểm tra trong bản 141 các file/folder sau, có gì?
     cp -R "$DIR_GAME_LOCATION"/update/etc/* /etc/
     cp -R "$DIR_GAME_LOCATION"/update/lib/*.* /lib/
     #cp -R $DIR_GAME_LOCATION/update/lib64/*.* /lib64/
@@ -458,11 +410,11 @@ function main(){
     trap finallyExit EXIT
 
     log "Step 1: Install the required ubuntu packages and i386 libs."
-    #installSeverPackages
+    installSeverPackages
 
     log "Step 2: Install the development related packages (apache2, mariaDB, java)."
-    #installDevPackages
-    #switchTimezone
+    installDevPackages
+    switchTimezone
 
     log "Step 3: Download Perfect World Server."
     #downloadGameServer
@@ -471,11 +423,11 @@ function main(){
     #extractGameServer
 
     log "Step 5: Setup the database."
-    #setupDb
-    #enableToConnectDbFromOutsideContainer
+    setupDb
+    enableToConnectDbFromOutsideContainer
 
     log "Step 6: Setup the web tools."
-    #setupWebTools
+    setupWebTools
 
     log "Step 7: Setup the Perfect World Server."
     setupGameServer
