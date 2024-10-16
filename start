@@ -16,7 +16,7 @@ sleep 1
 echo "=== DONE! ==="
 echo ""
 echo "=== AUTH ==="
-cd $PW_PATH/authd/build/; ./authd &
+cd $PW_PATH/authd/; ./authd &
 sleep 3
 echo "=== DONE! ==="
 echo ""
