@@ -39,7 +39,11 @@
 127.0.0.1 gamedbserver
 127.0.0.1 GameDB
 127.0.0.1 GameDBClient
-127.0.0.1 backup
+127.0.0.1 gm_server
+127.0.0.1 PW-Server
+127.0.0.1 LOCAL0
+127.0.0.1 LogServer
+127.0.0.1 AUDATA
 
 
 # End of hosts.
