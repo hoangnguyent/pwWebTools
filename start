@@ -14,73 +14,74 @@ if [ "$1" != "trace" ]; then
     postfix="2>&1 "
 fi
 
-echo "=== LOGSERVICE ==="
+echo "=== LOGSERVICE ======"
 cd $PW_PATH/logservice
-${nohupCmd}./logservice logservice.conf > $PW_PATH/logs/logservice.log ${postfix} &
+${nohupCmd}./logservice logservice.conf > $PW_PATH/logs/logservice.log ${postfix}&
 sleep 1
-echo "=== DONE! ==="
+echo "=== DONE! ==========="
 echo ""
 
-echo "=== UNIQUENAMED ==="
+echo "=== UNIQUENAMED ====="
 cd $PW_PATH/uniquenamed
-${nohupCmd}./uniquenamed gamesys.conf > $PW_PATH/logs/uniquenamed.log ${postfix} &
+${nohupCmd}./uniquenamed gamesys.conf > $PW_PATH/logs/uniquenamed.log ${postfix}&
 sleep 1
-echo "=== DONE! ==="
+echo "=== DONE! ==========="
 echo ""
 
-echo "=== AUTH ==="
+echo "=== AUTH ============"
 cd $PW_PATH/authd/
-${nohupCmd}./authd > $PW_PATH/logs/authd.log ${postfix} &
+${nohupCmd}./authd > $PW_PATH/logs/authd.log ${postfix}&
 sleep 3
-echo "=== DONE! ==="
+echo "=== DONE! ==========="
 echo ""
 
-echo "=== GAMEDBD ==="
+echo "=== GAMEDBD ========="
 cd $PW_PATH/gamedbd
-${nohupCmd}./gamedbd gamesys.conf > $PW_PATH/logs/gamedbd.log ${postfix} &
+${nohupCmd}./gamedbd gamesys.conf > $PW_PATH/logs/gamedbd.log ${postfix}&
 sleep 1
-echo "=== DONE! ==="
+echo "=== DONE! ==========="
 echo ""
 
-echo "=== GACD ==="
+echo "=== GACD ============"
 cd $PW_PATH/gacd
-${nohupCmd}./gacd gamesys.conf > $PW_PATH/logs/gacd.log ${postfix} &
+${nohupCmd}./gacd gamesys.conf > $PW_PATH/logs/gacd.log ${postfix}&
 sleep 1
-echo "=== DONE! ==="
+echo "=== DONE! ==========="
 echo ""
 
-echo "=== GFACTIOND ==="
+echo "=== GFACTIOND ======="
 cd $PW_PATH/gfactiond
-${nohupCmd}./gfactiond gamesys.conf > $PW_PATH/logs/gfactiond.log ${postfix} &
+${nohupCmd}./gfactiond gamesys.conf > $PW_PATH/logs/gfactiond.log ${postfix}&
 sleep 1
-echo "=== DONE! ==="
+echo "=== DONE! ==========="
 echo ""
 
-echo "=== GDELIVERYD ==="
+echo "=== GDELIVERYD ======"
 cd $PW_PATH/gdeliveryd
-${nohupCmd}./gdeliveryd gamesys.conf > $PW_PATH/logs/gdeliveryd.log ${postfix} &
+${nohupCmd}./gdeliveryd gamesys.conf > $PW_PATH/logs/gdeliveryd.log ${postfix}&
 sleep 1
-echo "=== DONE! ==="
+echo "=== DONE! ==========="
 echo ""
 
-echo "=== GLINKD ==="
+echo "=== GLINKD =========="
 cd $PW_PATH/glinkd
-${nohupCmd}./glinkd gamesys.conf 1 > $PW_PATH/logs/glink.log ${postfix} &
-${nohupCmd}./glinkd gamesys.conf 2 > $PW_PATH/logs/glink2.log ${postfix} &
-${nohupCmd}./glinkd gamesys.conf 3 > $PW_PATH/logs/glink3.log ${postfix} &
-${nohupCmd}./glinkd gamesys.conf 4 > $PW_PATH/logs/glink4.log ${postfix} &
+${nohupCmd}./glinkd gamesys.conf 1 > $PW_PATH/logs/glink.log ${postfix}&
+${nohupCmd}./glinkd gamesys.conf 2 > $PW_PATH/logs/glink2.log ${postfix}&
+${nohupCmd}./glinkd gamesys.conf 3 > $PW_PATH/logs/glink3.log ${postfix}&
+${nohupCmd}./glinkd gamesys.conf 4 > $PW_PATH/logs/glink4.log ${postfix}&
 sleep 3
-echo "=== DONE! ==="
+echo "=== DONE! ==========="
 echo ""
 
-echo "=== LOAD MAPS ==="
+echo "=== LOAD MAPS ======="
 cd $PW_PATH/gamed
-${nohupCmd}./gs gs01 > $PW_PATH/logs/game1.log ${postfix} &
-${nohupCmd}./gs is61 > $PW_PATH/logs/game1.log ${postfix} &
-${nohupCmd}./gs is69 > $PW_PATH/logs/game1.log ${postfix} &
+${nohupCmd}./gs gs01 > $PW_PATH/logs/game1.log ${postfix}&
+${nohupCmd}./gs is61 > $PW_PATH/logs/game1.log ${postfix}&
+${nohupCmd}./gs is69 > $PW_PATH/logs/game1.log ${postfix}&
+echo "=== DONE! ==========="
 
+echo "=== WEB TOOLS ======="
 service mariadb start
 service apache2 start
 $PW_PATH/server pwAdmin start
-
-echo "=== DONE! ==="
+echo "=== DONE! ==========="
