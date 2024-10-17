@@ -50,7 +50,7 @@ function installSeverPackages(){
     apt install -y mc nano wget curl sed bash grep dpkg net-tools > /dev/null 2>&1
     apt install -y p7zip-full > /dev/null 2>&1
 
-    # This is a tool to download a specific folder from a repository on Github.
+    # This is a tool to download specific folders from a Github repository.
     curl -sSLfo ./fetch https://github.com/gruntwork-io/fetch/releases/download/v0.4.6/fetch_linux_amd64
     chmod 777 ./fetch
 
@@ -250,17 +250,17 @@ function translateIwebIntoVietnamese() {
     sed -i "s/LightSail Cave/Bồng Minh Động/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s/Cube of Fate (2)/Vận Mệnh Ma Phương (2)/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s/dragon counqest/Thiện Long Cốc/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
-    sed -i "s/heavenfall temple/Tru Thiên Phù Đồ Tháp 1/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
-    sed -i "s/heavenfall temple/Tru Thiên Phù Đồ Tháp 2/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
-    sed -i "s/heavenfall temple/Tru Thiên Phù Đồ Tháp 3/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
-    sed -i "s/heavenfall temple/Tru Thiên Phù Đồ Tháp 4/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
+    sed -i "s/heavenfall temple/Tru Thiên Phù Đồ Tháp/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
+    sed -i "s/heavenfall temple/Tru Thiên Phù Đồ Tháp/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
+    sed -i "s/heavenfall temple/Tru Thiên Phù Đồ Tháp/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
+    sed -i "s/heavenfall temple/Tru Thiên Phù Đồ Tháp/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s/Uncharted Paradise/Huyễn Hải Kì Đàm/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s/Thurs Fights Cross/Thurs Fights Cross/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s/Western Steppes/Đại Lục Hoàn Mĩ - Tây Lục/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
-    sed -i "s/Homestead, Beyond the Clouds/Lăng Vân Giới 1/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
-    sed -i "s/Homestead, Beyond the Clouds/Lăng Vân Giới 2/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
-    sed -i "s/Homestead, Beyond the Clouds/Lăng Vân Giới 3/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
-    sed -i "s/Homestead, Beyond the Clouds/Lăng Vân Giới 4/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
+    sed -i "s/Homestead, Beyond the Clouds/Lăng Vân Giới/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
+    sed -i "s/Homestead, Beyond the Clouds/Lăng Vân Giới/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
+    sed -i "s/Homestead, Beyond the Clouds/Lăng Vân Giới/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
+    sed -i "s/Homestead, Beyond the Clouds/Lăng Vân Giới/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s/Grape Valley, Grape Valley/Grape Valley/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s/Nemesis Gaunntlet, Museum/Linh Lung Cục/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s/Dawnlight Halls, Palace of the Dawn (DR 1)/Thự Quang Điện (DR 1)/g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
@@ -322,7 +322,7 @@ function prepareStartAndStopScript(){
     wget -O /stop https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/stop
 
     # Override path in 'start' file
-    sed -i 's|^PW_PATH=.*|PW_PATH="$DIR_WORKSPACES_HOME"|' "start"
+    sed -i "s|^PW_PATH=.*|PW_PATH=$DIR_WORKSPACES_HOME|" "start"
 
 
     chmod 777 start stop
@@ -347,7 +347,7 @@ function setupGameServer(){
     # Override config in /home/authd/table.xml
     sed -i "/^<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql/c\<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql://$dbHost:3306/$dbName?useUnicode=true&amp;characterEncoding=ascii&amp;jdbcCompliantTruncation=false\" username=\"$dbUser\" password=\"$dbPassword\"/>" "$DIR_WORKSPACES_HOME/authd/table.xml"
 
-    # Sync files into folder /gamed/config. This should be done manually.
+    # Sync files into folder /home/gamed/config. This 8 files should be copied manually.
     # elements.data
     # gshop.data
     # gshop1.data
@@ -360,7 +360,7 @@ function setupGameServer(){
 }
 
 function cleanUp(){
-    echo
+    :
 }
 
 function main(){
