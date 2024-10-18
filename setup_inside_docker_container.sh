@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define your timezone
-timezone=GMT+7
+timezone=GMT-7
 
 # Define game version
 version=1.7.3
@@ -481,7 +481,7 @@ function main(){
 
     log "#######################################################################"
     log "The Perfect World ${version} game server has been completed."
-    log "Run [./start] to start. Or [./start trace] to start and tracing game events."
+    log "Run [./start] to start. Or [./start trace] to start and tracing game issues."
     log "#######################################################################"
 
     endTime=$(date +%s)
