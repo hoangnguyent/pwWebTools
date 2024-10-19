@@ -7,39 +7,6 @@ else
     rm $PW_PATH/logs/*.log
 fi
 
-# Override the whole file /etc/hosts. When running Docker container, this file is always reverted. Don't know the reason.
-echo "127.0.0.1 localhost
-127.0.0.1 localhost l
-127.0.0.1 ubuntu
-127.0.0.1 perfectworld
-127.0.0.1 dbserver
-127.0.0.1 database
-127.0.0.1 auth
-127.0.0.1 audb
-127.0.0.1 manager
-127.0.0.1 aumanager
-127.0.0.1 link1
-127.0.0.1 link2
-127.0.0.1 link3
-127.0.0.1 link4
-127.0.0.1 game1
-127.0.0.1 game2
-127.0.0.1 game3
-127.0.0.1 game4
-127.0.0.1 delivery
-127.0.0.1 gdelivery
-127.0.0.1 backup
-127.0.0.1 gmserver
-127.0.0.1 nfsroot
-127.0.0.1 gamedbserver
-127.0.0.1 GameDB
-127.0.0.1 GameDBClient
-127.0.0.1 gm_server
-127.0.0.1 PW-Server
-127.0.0.1 LOCAL0
-127.0.0.1 LogServer
-127.0.0.1 AUDATA" > /etc/hosts
-
 if [ "$1" = "trace" ]; then
 
     echo "=== LOGSERVICE ======"
@@ -184,6 +151,3 @@ echo "=== WEB TOOLS ======="
 service mariadb start
 service apache2 start
 $PW_PATH/server pwAdmin start
-sleep 5
-echo "=== DONE! ==========="
-echo ""
