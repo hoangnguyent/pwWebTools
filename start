@@ -7,8 +7,8 @@ else
     rm $PW_PATH/logs/*.log
 fi
 
-# Override the whole file /etc/hosts. When running Docker container, this file is always reverted. Don't know why.
-echo -e "127.0.0.1 localhost
+# Override the whole file /etc/hosts. When running Docker container, this file is always reverted. Don't know the reason.
+echo "127.0.0.1 localhost
 127.0.0.1 localhost l
 127.0.0.1 ubuntu
 127.0.0.1 perfectworld
