@@ -143,7 +143,7 @@ function setupRegisterPhp(){
     wget -c https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/register.php -O "$websitePath/register.php"
     chmod 777 -R "$websitePath"
 
-    # Override config in the register.php: replace line starts with a text with another text
+    # Override file /register.php: replace the line starts with a text with another text
     sed -i "/^\$config = \[\];/c\$config = ['host' => '$dbHost', 'user' => '$dbUser', 'pass' => '$dbPassword', 'name' => '$dbName', 'gold' => '1000000000',];" "$websitePath/register.php"
 
     service apache2 restart
@@ -159,7 +159,7 @@ function setupIwebJava(){
     # java version "1.7.0_80". apt-get install openjdk-8-jdk
     # apt-get install openjdk-8-jdk
 
-    # Override info in file /home/server: DB connection; [pwadmin] web tool location; and other info. Replace line that starts with a text with another text
+    # Override file /home/server: DB connection; [pwadmin] web tool location; and other info. Replace the line that starts with a text with another text
     sed -i "/^# Last Updated:/c\# Last Updated: $(date +'%Y/%m/%d')" "$DIR_WORKSPACES_HOME/server"
     sed -i "/^# Require:/c\# Require: Perfect World server v$version" "$DIR_WORKSPACES_HOME/server"
     sed -i "/^ServerDir=/c\ServerDir=$DIR_WORKSPACES_HOME" "$DIR_WORKSPACES_HOME/server"
@@ -168,7 +168,7 @@ function setupIwebJava(){
     sed -i "/^DB=/c\DB=$dbName" "$DIR_WORKSPACES_HOME/server"
     sed -i "/^pwAdmin_dir=/c\pwAdmin_dir=$DIR_WORKSPACES_HOME/pwadmin/bin" "$DIR_WORKSPACES_HOME/server"
 
-    # Override info in file /home/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp: DB connection; game location; MD5 of iweb password.
+    # Override file /home/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp: DB connection; game location; MD5 of iweb password.
     pwAdminEncodedPw="$(printf "$pwAdminRawPw" | md5sum | sed 's/ .*$//')"
     sed -i "/String db_host = /c\String db_host = \"$dbHost\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
     sed -i "/String db_user = /c\String db_user = \"$dbUser\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
@@ -178,7 +178,7 @@ function setupIwebJava(){
     sed -i "/String iweb_password = /c\String iweb_password = \"$pwAdminEncodedPw\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
     sed -i "/String pw_server_path = /c\String pw_server_path = \"$DIR_WORKSPACES_HOME/\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
 
-    # Override info in file /home/pwadmin/webapps/pwadmin/addons/Top Players - Manual Refresh/index.jsp: DB connection. Replace line that contains a text with whole new line
+    # Override file /home/pwadmin/webapps/pwadmin/addons/Top Players - Manual Refresh/index.jsp: DB connection. Replace the line that contains a text with a whole new line
     sed -i "/connection = DriverManager.getConnection(/c\connection = DriverManager.getConnection(\"jdbc:mysql://$dbHost:3306/$dbName?useUnicode=true&characterEncoding=utf8\", \"$dbUser\", \"$db_password\");" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/addons/Top Players - Manual Refresh/index.jsp"
 
 }
@@ -392,7 +392,7 @@ function setupWebTools() {
     # Other tools
 }
 
-function prepareStartAndStopScript(){
+function composeStartAndStopScript(){
 
     # Download start/stop script
     wget -O /start https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/start
@@ -420,11 +420,8 @@ function setupGameServer(){
     # Find table.xml in the worspace folder, and then copy it to /etc
     find $DIR_WORKSPACES -type f -name "table.xml" -exec cp -f {} "/etc" \;
 
-    # Override config in /home/authd/table.xml
+    # Override file /home/authd/table.xml: replace the line that starts with a text with a whole new line
     sed -i "/^<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql/c\<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql://$dbHost:3306/$dbName?useUnicode=true&amp;characterEncoding=ascii&amp;jdbcCompliantTruncation=false\" username=\"$dbUser\" password=\"$dbPassword\"/>" "$DIR_WORKSPACES_HOME/authd/table.xml"
-
-    # Override info in file /home/gdeliveryd/gamesys.conf: replace line that start with a text with whole new line
-    sed -i "/^address/c\address = 127.0.0.1" "$DIR_WORKSPACES_HOME/gdeliveryd/gamesys.conf"
 
     # Sync files to folder /home/gamed/config. These 9 files should be copied manually.
     # 1. aipolicy.data
@@ -436,6 +433,16 @@ function setupGameServer(){
     # 7. gshopsev1.data
     # 8. gshopsev2.data
     # 9. tasks.data
+
+}
+
+function enableGameServerConnection(){
+
+    # Override file /home/glinkd/gamesys.conf: replace the line that starts with a text with a whole new line. Allow everywhere to connect.
+    sed -i "/^address/c\address			=	0.0.0.0" "$DIR_WORKSPACES_HOME/glinkd/gamesys.conf"
+
+    # Override file /home/gdeliveryd/gamesys.conf: replace the line that starts with a text with a whole new line. Allow only this local machine to connect.
+    sed -i "/^address/c\address				=	127.0.0.1" "$DIR_WORKSPACES_HOME/gdeliveryd/gamesys.conf"
 
 }
 
@@ -470,7 +477,8 @@ function main(){
 
     log "Step 7: Setup the Perfect World Server."
     setupGameServer
-    prepareStartAndStopScript
+    enableGameServerConnection
+    composeStartAndStopScript
 
     log "Step 8: Translate."
     translateMapsIntoVietnamese
