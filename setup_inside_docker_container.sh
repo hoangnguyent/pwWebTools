@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define your timezone
-timezone=GMT-7
+timezone=Asia/Ho_Chi_Minh
 
 # Define game version
 version=1.7.3
@@ -22,11 +22,44 @@ pwAdminUsername="admin"
 pwAdminRawPw="admin"
 pwAdminEmail="admin@gmail.com"
 
+# Common variables
 currentSQLDate=$(date +'%F %T');
 logfile="/setup.log"
 startTime=$(date +%s)
+hostnamesResolution="
+127.0.0.1 AUDATA
+127.0.0.1 GameDB
+127.0.0.1 GameDBClient
+127.0.0.1 LOCAL0
+127.0.0.1 LogServer
+127.0.0.1 PW-Server
+127.0.0.1 audb
+127.0.0.1 aumanager
+127.0.0.1 auth
+127.0.0.1 backup
+127.0.0.1 database
+127.0.0.1 dbserver
+127.0.0.1 delivery
+127.0.0.1 game1
+127.0.0.1 game2
+127.0.0.1 game3
+127.0.0.1 game4
+127.0.0.1 gamedbserver
+127.0.0.1 gdelivery
+127.0.0.1 gm_server
+127.0.0.1 gmserver
+127.0.0.1 link1
+127.0.0.1 link2
+127.0.0.1 link3
+127.0.0.1 link4
+127.0.0.1 localhost
+127.0.0.1 localhost.localdomain
+127.0.0.1 manager
+127.0.0.1 nfsroot
+127.0.0.1 perfectworld
+127.0.0.1 ubuntu
+"
 
-# Define bash functions
 function log(){
     local message=$1
     echo "$message" | tee -a "$logfile"
@@ -38,7 +71,7 @@ function finallyExit(){
 }
 
 function switchTimezone(){
-    ln -sf /usr/share/zoneinfo/Etc/$timezone /etc/localtime
+    ln -sf /usr/share/zoneinfo/$timezone /etc/localtime
 }
 
 function installSeverPackages(){
@@ -77,6 +110,9 @@ function extractGameServer(){
     7z x -aoa $DIR_WORKSPACES/pw.7z -sccutf-8 -scsutf-8 -o$DIR_WORKSPACES
     chmod 777 -R $DIR_WORKSPACES
     rm -f $DIR_WORKSPACES/pw.7z
+
+    # TODO: scan and check folder structure
+
 }
 
 function setupDb() {
@@ -128,7 +164,10 @@ function enableToConnectDbFromOutsideContainer(){
     # Allow all IP addresses outside the container.
     echo -e "[mysqld]
 log_error = /var/log/mysql/error.log
-bind-address = 0.0.0.0" >> /etc/mysql/my.cnf
+bind-address = 0.0.0.0
+skip-name-resolve" >> /etc/mysql/my.cnf
+
+# TODO: vừa sửa ở đây, phải test lại.
 }
 
 function setupRegisterPhp(){
@@ -381,7 +420,7 @@ function translateIwebIntoVietnamese() {
     sed -i "s#Quicksand Maze (Mirage of the wandering sands)#Mê Sa Huyễn Cảnh#g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
     sed -i "s#Tomb of Whispers#Tomb of Whispers#g" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/serverctrl.jsp"
 
-    # Có nhiều map mình không tìm được tên tiếng Việt. Ai biết, xin chỉ giùm nhé.
+    # Có nhiều map mình không tìm được tên tiếng Việt, thậm chí dịch bừa. Ai biết, xin chỉ giùm nhé.
 }
 
 function setupWebTools() {
@@ -398,8 +437,16 @@ function composeStartAndStopScript(){
     wget -O /start https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/start
     wget -O /stop https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/stop
 
-    # Override path in 'start' file
+    # Override the 'start' file
     sed -i "s|^PW_PATH=.*|PW_PATH=$DIR_WORKSPACES_HOME|" "start"
+    hostCommand="echo \"$hostnamesResolution\" >> /etc/hosts"
+    echo "# Docker Container reverts /etc/hosts when restarts. We need to re-add these lines everytimes." >> start
+    echo "$hostCommand" >> start
+    connectionStringCommand="echo \"To connect to the DB from outside the Container, use: jdbc:mariadb://$dbHost:3306/$dbName?user=$dbUser&password=$dbPassword\" "
+    echo "$connectionStringCommand" >> start
+    echo "sleep 30" >> start
+    echo "echo \"=== DONE! ===========\"" >> start
+    echo "echo \"\"" >> start
 
     chmod 777 start stop
 
@@ -409,10 +456,12 @@ function setupGameServer(){
 
     # Update file /etc/hosts, firewall
     ./fetch --repo="https://github.com/hoangnguyent/pwWebTools" --ref="master" --source-path="/copy" /copy
-    cp -rf copy/etc/* /etc
-    cp -rf copy/lib/* /lib
-    cp -rf copy/lib64/* /lib64
-    rm -rf copy
+    #cp -rf /copy/etc/* /etc
+    rsync -av --exclude='/hosts' /copy/etc/ /etc/
+    cp -rf /copy/lib/* /lib
+    cp -rf /copy/lib64/* /lib64
+    rm -rf /copy
+    echo $hostnamesResolution >> /etc/hosts
 
     # Override /home/authd/authd
     sed -i 's##!/bin/sh#export CLASSPATH=lib/dt.jar:lib/tools.jar#g' "$DIR_WORKSPACES_HOME/authd"
@@ -440,6 +489,7 @@ function enableGameServerConnection(){
 
     # Override file /home/glinkd/gamesys.conf: replace the line that starts with a text with a whole new line. Allow everywhere to connect.
     sed -i "/^address/c\address			=	0.0.0.0" "$DIR_WORKSPACES_HOME/glinkd/gamesys.conf"
+    # TODO: hình như đang có vd ở đây. Thay toàn bộ  là 0.0.0.0 chưa chắc đúng.
 
     # Override file /home/gdeliveryd/gamesys.conf: replace the line that starts with a text with a whole new line. Allow only this local machine to connect.
     sed -i "/^address/c\address				=	127.0.0.1" "$DIR_WORKSPACES_HOME/gdeliveryd/gamesys.conf"

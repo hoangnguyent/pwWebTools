@@ -1,4 +1,5 @@
 #!/bin/sh
+
 PW_PATH=/root
 
 if [ ! -d $PW_PATH/logs ]; then
