@@ -5,18 +5,20 @@
 <%@page import="java.security.*"%>
 <%@page import="org.apache.commons.logging.Log"%>
 <%@page import="org.apache.commons.logging.LogFactory"%>
+<%@page import="org.apache.commons.codec.binary.Base64"%>
+<%@page import="org.apache.commons.codec.digest.DigestUtils"%>
 <%@page import="org.apache.catalina.util.*"%>
 <%@page import="com.goldhuman.util.LocaleUtil"%>
 <%@include file="WEB-INF/.pwadminconf.jsp"%>
 
 <%!
-    String pw_encode(String salt, MessageDigest alg)
+    String pw_encode(String salt)
 	{
-		alg.reset();
-        alg.update(salt.getBytes());
-        byte[] digest = alg.digest();
-        salt = Base64.encode( digest ).toString();
-        return salt;
+        // Generate MD5 hash
+        byte[] hash = DigestUtils.md5(salt);
+
+        // Base64 encode the hash
+        return Base64.encodeBase64String(hash);
    	}
 %>
 
@@ -99,7 +101,7 @@
 								}
 								else
 								{
-									password = pw_encode(login + password, MessageDigest.getInstance("MD5"));
+									password = pw_encode(login + password);
 									rs = statement.executeQuery("CALL adduser('" + login + "', '" + password + "', '0', '0', '0', '0', '" + mail + "', '0', '0', '0', '0', '0', '0', '0', NULL, '', '" + password + "')");
 									message = "<font color=\"00cc00\">Account Created</font>";
 								}
@@ -175,7 +177,7 @@
 								}
 								else
 								{
-									password_old = pw_encode(login + password_old, MessageDigest.getInstance("MD5"));
+									password_old = pw_encode(login + password_old);
 
 									rs = statement.executeQuery("CALL adduser('" + login + "_TEMP_USER', '" + password_old + "', '0', '0', '0', '0', '', '0', '0', '0', '0', '0', '0', '0', NULL, '', '" + password_old + "')");
 									rs = statement.executeQuery("SELECT passwd FROM users WHERE name='" + login + "_TEMP_USER'");
@@ -190,7 +192,7 @@
 									}
 									else
 									{
-										password_new = pw_encode(login + password_new, MessageDigest.getInstance("MD5"));
+										password_new = pw_encode(login + password_new);
 
 										statement.executeUpdate("LOCK TABLE users WRITE");
 										statement.executeUpdate("DELETE FROM users WHERE name='" + login + "'");

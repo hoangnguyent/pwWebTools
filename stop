@@ -12,4 +12,5 @@ pkill -9 start.sh
 service mariadb stop
 service apache2 stop
 pkill -9 java
+sleep 10
 echo "=== DONE! ==========="
