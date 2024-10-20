@@ -57,10 +57,6 @@
 	<operation description="List of characters" name="GetRoleList" type="517"/>
 	<operation description="Change password" name="UpdateAccountPasswd" type="518"/>
 
-	<zone aid="1" delivery="127.0.0.1" gacdport="29712" id="1" location = "Feilvbin1" name = "WanMei1" url="http://192.168.56.101:8080/GMserver" url2=""/>
-	<zone aid="1" delivery="192.168.56.101" gacdport="29712" id="1" location="Brazil1" name="WanMei1" url="http://192.168.56.101:8080/GMserver" url2=""/>
-	<zone aid="1" delivery="127.0.0.1" gacdport="29712" id="2" location="Brazil2" name="WanMei2" url="http://192.168.56.101:8080/GMserver" url2=""/>
-	<zone aid="1" delivery="192.168.56.101" gacdport="29712" id="3" location="Brazil3" name="WanMei3" url="http://192.168.56.101:8080/iweb/gmservice" url2=""/>
-
+    <zone aid="1" delivery="127.0.0.1" gacdport="29712" id="1" location = "WanMei1" name = "WanMei1" url="http://127.0.0.1:8080/pwadmin/gmservice" url2=""  />
 
 </application>

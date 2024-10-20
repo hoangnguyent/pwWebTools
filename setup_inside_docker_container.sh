@@ -13,7 +13,7 @@ URL_DOWNLOAD="https://drive.usercontent.google.com/download?id=1UebfhrwJIWfP5cZv
 
 # Define database configuration
 dbName=pw
-dbHost=localhost
+dbHost=127.0.0.1
 dbUser=dba
 dbPassword=dba
 
@@ -25,7 +25,9 @@ pwAdminEmail="admin@gmail.com"
 # Common variables
 currentSQLDate=$(date +'%F %T');
 logfile="/setup.log"
+now=$(date +%Y%m%d_%H%M%S)
 startTime=$(date +%s)
+pwAdminPasswordHashBase64=""
 hostnamesResolution="
 127.0.0.1 AUDATA
 127.0.0.1 GameDB
@@ -80,7 +82,7 @@ function installSeverPackages(){
     apt update
     apt install -y sudo
     apt install -y dialog apt-utils > /dev/null 2>&1
-    apt install -y mc nano wget curl sed bash grep dpkg net-tools > /dev/null 2>&1
+    apt install -y mc nano wget curl sed bash grep dpkg net-tools iputils-ping > /dev/null 2>&1
     apt install -y p7zip-full > /dev/null 2>&1
 
     # This is a tool to download specific folders from a Github repository.
@@ -111,11 +113,20 @@ function extractGameServer(){
     chmod 777 -R $DIR_WORKSPACES
     rm -f $DIR_WORKSPACES/pw.7z
 
+    # Use my pwadmin (iweb)
+    rm -f $DIR_WORKSPACES_HOME/pwadmin
+    ./fetch --repo="https://github.com/hoangnguyent/pwWebTools" --ref="master" --source-path="/pwadmin" $DIR_WORKSPACES_HOME/pwadmin
+
     # TODO: scan and check folder structure
 
 }
 
 function setupDb() {
+
+    # This algorithm must not be changed!!!
+    # Generate MD5 hash in binary format and base64 encode it
+    pwAdminPasswordSalt=$(echo "${pwAdminUsername}${pwAdminRawPw}" | tr '[:upper:]' '[:lower:]')
+    pwAdminPasswordHashBase64=$(echo -n "$pwAdminPasswordSalt" | openssl dgst -md5 -binary | base64)
 
     wget -c https://raw.githubusercontent.com/hoangnguyent/pwWebTools/refs/heads/master/pwa.sql -O "$DIR_WORKSPACES/pw.sql"
 
@@ -123,37 +134,35 @@ function setupDb() {
 
     # Grant DB permission.
     mariadb -u"root" -p"123456" <<EOF
-DROP USER IF EXISTS '$dbUser'@'$dbHost';
-CREATE USER '$dbUser'@'$dbHost' IDENTIFIED BY '$dbPassword';
-GRANT ALL PRIVILEGES ON *.* TO '$dbUser'@'$dbHost';
-DROP USER IF EXISTS '$dbUser'@'%';
-CREATE USER '$dbUser'@'%' IDENTIFIED BY '$dbPassword';
-GRANT ALL PRIVILEGES ON *.* TO '$dbUser'@'%';
-FLUSH PRIVILEGES;
+        DROP USER IF EXISTS '$dbUser'@'$dbHost';
+        CREATE USER '$dbUser'@'$dbHost' IDENTIFIED BY '$dbPassword';
+        GRANT ALL PRIVILEGES ON *.* TO '$dbUser'@'$dbHost';
+        DROP USER IF EXISTS '$dbUser'@'%';
+        CREATE USER '$dbUser'@'%' IDENTIFIED BY '$dbPassword';
+        GRANT ALL PRIVILEGES ON *.* TO '$dbUser'@'%';
+        FLUSH PRIVILEGES;
 EOF
 
     service mariadb restart
 
     mariadb -u"$dbUser" -p"$dbPassword" <<EOF
-DROP DATABASE IF EXISTS $dbName;
-CREATE DATABASE $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+        DROP DATABASE IF EXISTS $dbName;
+        CREATE DATABASE $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 EOF
 
-    mariadb -u"$dbUser" -p"$dbPassword" pw < "$DIR_WORKSPACES/pw.sql"
+    mariadb -u"$dbUser" -p"$dbPassword" "$dbName" < "$DIR_WORKSPACES/pw.sql"
     rm "$DIR_WORKSPACES/pw.sql"
 
-    pwAdminEncodedPw="$(printf "$pwAdminRawPw" | md5sum | sed 's# .*$##')"
-
-    mariadb -u"$dbUser" -p"$dbPassword" pw <<EOF
-CALL adduser("$pwAdminUsername", "$pwAdminEncodedPw", "0", "0", "super admin", "0.0.0.0", "$pwAdminEmail", "0", "0", "0", "0", "0", "0", "0", "$currentSQLDate", " ", "$pwAdminEncodedPw");
+    mariadb -u"$dbUser" -p"$dbPassword" "$dbName" <<EOF
+        CALL adduser("$pwAdminUsername", "$pwAdminPasswordHashBase64", "0", "0", "super admin", "0.0.0.0", "$pwAdminEmail", "0", "0", "0", "0", "0", "0", "0", "$currentSQLDate", " ", "$pwAdminPasswordHashBase64");
 EOF
 
-    lastInsertedUserId=$(mariadb -u"$dbUser" -p"$dbPassword" pw -se "SELECT ID from users WHERE name=\"$pwAdminUsername\"");
+    lastInsertedUserId=$(mariadb -u"$dbUser" -p"$dbPassword" "$dbName" -se "SELECT ID from users WHERE name=\"$pwAdminUsername\"");
     echo "last inserted id: $lastInsertedUserId";
     if [[ "$lastInsertedUserId" =~ ^[0-9]+$ ]]; then
-        mariadb -u"$dbUser" -p"$dbPassword" pw <<EOF
-CALL addGM("$lastInsertedUserId", "1");
-INSERT INTO usecashnow (userid, zoneid, sn, aid, point, cash, status, creatime) VALUES ("$lastInsertedUserId", "1", "0", "1", "0", "100000", "1", "$currentSQLDate") ON DUPLICATE KEY UPDATE cash = cash + 100000;
+        mariadb -u"$dbUser" -p"$dbPassword" "$dbName" <<EOF
+            CALL addGM("$lastInsertedUserId", "1");
+            INSERT INTO usecashnow (userid, zoneid, sn, aid, point, cash, status, creatime) VALUES ("$lastInsertedUserId", "1", "0", "1", "0", "100000", "1", "$currentSQLDate") ON DUPLICATE KEY UPDATE cash = cash + 100000;
 EOF
     fi
 
@@ -161,13 +170,26 @@ EOF
 
 function enableToConnectDbFromOutsideContainer(){
 
+    service mariadb start
+
+    mariadb -u"root" -p"123456" <<EOF
+        DROP USER IF EXISTS '$dbUser'@'$localhost';
+        CREATE USER '$dbUser'@'localhost' IDENTIFIED BY '$dbPassword';
+        GRANT ALL PRIVILEGES ON *.* TO '$dbUser'@'localhost';
+        DROP USER IF EXISTS '$dbUser'@'$127.0.0.1';
+        CREATE USER '$dbUser'@'127.0.0.1' IDENTIFIED BY '$dbPassword';
+        GRANT ALL PRIVILEGES ON *.* TO '$dbUser'@'127.0.0.1';
+        FLUSH PRIVILEGES;
+EOF
+
+    service mariadb restart
+
     # Allow all IP addresses outside the container.
     echo -e "[mysqld]
 log_error = /var/log/mysql/error.log
 bind-address = 0.0.0.0
 skip-name-resolve" >> /etc/mysql/my.cnf
 
-# TODO: vừa sửa ở đây, phải test lại.
 }
 
 function setupRegisterPhp(){
@@ -208,13 +230,13 @@ function setupIwebJava(){
     sed -i "/^pwAdmin_dir=/c\pwAdmin_dir=$DIR_WORKSPACES_HOME/pwadmin/bin" "$DIR_WORKSPACES_HOME/server"
 
     # Override file /home/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp: DB connection; game location; MD5 of iweb password.
-    pwAdminEncodedPw="$(printf "$pwAdminRawPw" | md5sum | sed 's/ .*$//')"
+    iwebPasswordSalt=$(echo "${pwAdminUsername}" | tr '[:upper:]' '[:lower:]')
+    iwebPasswordHashBase64=$(echo -n "$pwAdminUsername" | openssl dgst -md5 -binary | base64)
     sed -i "/String db_host = /c\String db_host = \"$dbHost\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
     sed -i "/String db_user = /c\String db_user = \"$dbUser\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
     sed -i "/String db_password = /c\String db_password = \"$dbPassword\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
     sed -i "/String db_database = /c\String db_database = \"$dbName\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
-    sed -i "/String iweb_password = /c\String iweb_password = \"$pwAdminEncodedPw\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
-    sed -i "/String iweb_password = /c\String iweb_password = \"$pwAdminEncodedPw\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
+    sed -i "/String iweb_password = /c\String iweb_password = \"$iwebPasswordHashBase64\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
     sed -i "/String pw_server_path = /c\String pw_server_path = \"$DIR_WORKSPACES_HOME/\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
 
     # Override file /home/pwadmin/webapps/pwadmin/addons/Top Players - Manual Refresh/index.jsp: DB connection. Replace the line that contains a text with a whole new line
@@ -439,13 +461,17 @@ function composeStartAndStopScript(){
 
     # Override the 'start' file
     sed -i "s|^PW_PATH=.*|PW_PATH=$DIR_WORKSPACES_HOME|" "start"
-    hostCommand="echo \"$hostnamesResolution\" >> /etc/hosts"
-    echo "# Docker Container reverts /etc/hosts when restarts. We need to re-add these lines everytimes." >> start
+    hostCommand="
+    if ! grep -q \"127.0.0.1 AUDATA\" /etc/hosts; then
+        echo \"Docker Container revertes the /etc/hosts whenever it restarts. We are re-adding the hostnames resolution automatically...\"
+        echo \"$hostnamesResolution\" >> /etc/hosts
+    fi"
     echo "$hostCommand" >> start
-    connectionStringCommand="echo \"To connect to the DB from outside the Container, use: jdbc:mariadb://$dbHost:3306/$dbName?user=$dbUser&password=$dbPassword\" "
+    connectionStringCommand="echo \"To connect to the DB from outside the Container, use: jdbc:mariadb://$dbHost:3306/$dbName?user=$dbUser&password=$dbPassword\""
     echo "$connectionStringCommand" >> start
+
     echo "sleep 30" >> start
-    echo "echo \"=== DONE! ===========\"" >> start
+    echo "echo \"=== COMPLETED! ======\"" >> start
     echo "echo \"\"" >> start
 
     chmod 777 start stop
@@ -456,21 +482,27 @@ function setupGameServer(){
 
     # Update file /etc/hosts, firewall
     ./fetch --repo="https://github.com/hoangnguyent/pwWebTools" --ref="master" --source-path="/copy" /copy
-    #cp -rf /copy/etc/* /etc
+    #Copy the whole folder exept /copy/etc/hosts
     rsync -av --exclude='/hosts' /copy/etc/ /etc/
     cp -rf /copy/lib/* /lib
     cp -rf /copy/lib64/* /lib64
     rm -rf /copy
-    echo $hostnamesResolution >> /etc/hosts
+
+    # Override file /etc/table.xml: replace the line that starts with a text with a whole new line.
+    sed -i "/^<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql/c\<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql://$dbHost:3306/$dbName?useUnicode=true&amp;characterEncoding=utf8&amp;jdbcCompliantTruncation=false\" username=\"$dbUser\" password=\"$dbPassword\"/>" "/etc/table.xml"
+    cp -f /etc/table.xml $DIR_WORKSPACES_HOME/authd/table.xml
+    
+    # Override file /etc/GMServer.conf: replace the line that starts with a text with a whole new line.
+    # TODO: trong [copy] có file GMServer.conf, gmopgen.xml, đang dùng IP linh tinh. Hãy check lại, có quan trọng không?
+    sed -i "/^address/c\address                 =       127.0.0.1" "/etc/table.xml"
 
     # Override /home/authd/authd
     sed -i 's##!/bin/sh#export CLASSPATH=lib/dt.jar:lib/tools.jar#g' "$DIR_WORKSPACES_HOME/authd"
+    cp -f /etc/table.xml $DIR_WORKSPACES_HOME/authd/table.xml
 
-    # Find table.xml in the worspace folder, and then copy it to /etc
-    find $DIR_WORKSPACES -type f -name "table.xml" -exec cp -f {} "/etc" \;
-
-    # Override file /home/authd/table.xml: replace the line that starts with a text with a whole new line
-    sed -i "/^<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql/c\<connection name=\"auth0\" poolsize=\"3\" url=\"jdbc:mysql://$dbHost:3306/$dbName?useUnicode=true&amp;characterEncoding=ascii&amp;jdbcCompliantTruncation=false\" username=\"$dbUser\" password=\"$dbPassword\"/>" "$DIR_WORKSPACES_HOME/authd/table.xml"
+    # Override file /home/gamed/gs.conf: replace the line that starts with a text with a whole new line.
+    sed -i "/^Root	/c\Root				= $DIR_WORKSPACES_HOME/gamed/config" "$DIR_WORKSPACES_HOME/gamed/gs.conf" #TODO: /home/gamed/gs.conf hình như cần sửa path
+    #TODO: nếu sửa toàn toàn bộ gdeliveryd/gamesys.conf thành 0.0.0.0, sẽ không báo lỗi [err : CrossRelated Connect to central delivery failed] nữa
 
     # Sync files to folder /home/gamed/config. These 9 files should be copied manually.
     # 1. aipolicy.data
@@ -487,9 +519,18 @@ function setupGameServer(){
 
 function enableGameServerConnection(){
 
-    # Override file /home/glinkd/gamesys.conf: replace the line that starts with a text with a whole new line. Allow everywhere to connect.
-    sed -i "/^address/c\address			=	0.0.0.0" "$DIR_WORKSPACES_HOME/glinkd/gamesys.conf"
-    # TODO: hình như đang có vd ở đây. Thay toàn bộ  là 0.0.0.0 chưa chắc đúng.
+    # Override file /home/glinkd/gamesys.conf: first 7 matches will be 0.0.0.0. Other matches will be 127.0.0.1. # TODO: Thay toàn bộ là 0.0.0.0 chưa chắc đúng.
+    counter=0
+    sed -i.bak"$now" -e '/address/ {
+        # Increment the counter
+        counter=$((counter + 1))
+        # Check the counter value and replace accordingly
+        if [ $counter -le 7 ]; then
+            s/address.*/address		=	0.0.0.0/
+        else
+            s/address.*/address		=	127.0.0.1/
+        fi
+    }' your_file.txt
 
     # Override file /home/gdeliveryd/gamesys.conf: replace the line that starts with a text with a whole new line. Allow only this local machine to connect.
     sed -i "/^address/c\address				=	127.0.0.1" "$DIR_WORKSPACES_HOME/gdeliveryd/gamesys.conf"
@@ -537,10 +578,10 @@ function main(){
     log "Step 9: Clean up."
     cleanUp
 
-    log "#######################################################################"
+    log "############################################################################"
     log "The Perfect World ${version} game server has been completed."
     log "Run [./start] to start. Or [./start trace] to start and tracing game issues."
-    log "#######################################################################"
+    log "############################################################################"
 
     endTime=$(date +%s)
     elapsedTime=$((endTime - startTime))
