@@ -8,7 +8,7 @@ else
     rm $PW_PATH/logs/*.log
 fi
 
-if [ "$1" = "trace" ]; then
+if [ -n "$1" ]; then
 
     echo "=== LOGSERVICE ======"
     cd $PW_PATH/logservice

@@ -99,6 +99,39 @@ function installDevPackages(){
     apt install -y apache2 > /dev/null 2>&1
     apt install -y default-jre > /dev/null 2>&1
     apt install -y mariadb-server > /dev/null 2>&1
+    # installMariaDbManually
+}
+
+# TODO: not working
+function installMariaDbManually(){
+
+    wget https://archive.mariadb.org//mariadb-5.5.68/bintar-linux-systemd-x86_64/mariadb-5.5.68-linux-systemd-x86_64.tar.gz
+    tar -xzvf mariadb-5.5.68-linux-systemd-x86_64.tar.gz
+    mv mariadb-5.5.68-linux-systemd-x86_64 /usr/local/mariadb-5.5.68
+    cp /usr/local/mariadb-5.5.68/support-files/my-small.cnf /etc/my.cnf
+
+    if grep -q "^\[mysqld\]" /etc/my.cnf; then
+    # Append settings to the [mysqld] section
+    sed -i '/^\[mysqld\]/a \
+basedir=/usr/local/mariadb-5.5.68\n
+datadir=/usr/local/mariadb-5.5.68/data\n
+user=root' /etc/my.cnf
+    else
+    # Add [mysqld] section and settings at the end of the file
+        echo -e "\n[mysqld]\nbasedir=/usr/local/mariadb-5.5.68\ndatadir=/usr/local/mariadb-5.5.68/data\nuser=root" | sudo tee -a /etc/my.cnf
+    fi
+
+    echo "basedir=/usr/local/mariadb-5.5.68
+datadir=/usr/local/mariadb-5.5.68/data
+user=root
+" > /etc/my.cnf
+
+    /usr/local/mariadb-5.5.68/scripts/mysql_install_db --user=root --basedir=/usr/local/mariadb-5.5.68 --datadir=/usr/local/mariadb-5.5.68/data
+    sudo systemctl enable mariadb
+
+    # Start:
+    sudo /usr/local/mariadb-5.5.68/support-files/mysql.server start
+
 }
 
 function downloadGameServer(){
@@ -114,8 +147,8 @@ function extractGameServer(){
     rm -f $DIR_WORKSPACES/pw.7z
 
     # Use my pwadmin (iweb)
-    rm -f $DIR_WORKSPACES_HOME/pwadmin
-    ./fetch --repo="https://github.com/hoangnguyent/pwWebTools" --ref="master" --source-path="/pwadmin" $DIR_WORKSPACES_HOME/pwadmin
+    rm -rf $DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin
+    ./fetch --repo="https://github.com/hoangnguyent/pwWebTools" --ref="master" --source-path="/pwadmin" $DIR_WORKSPACES_HOME/pwadmin/webapps/
 
     # TODO: scan and check folder structure
 
@@ -176,19 +209,28 @@ function enableToConnectDbFromOutsideContainer(){
         DROP USER IF EXISTS '$dbUser'@'$localhost';
         CREATE USER '$dbUser'@'localhost' IDENTIFIED BY '$dbPassword';
         GRANT ALL PRIVILEGES ON *.* TO '$dbUser'@'localhost';
-        DROP USER IF EXISTS '$dbUser'@'$127.0.0.1';
+        DROP USER IF EXISTS '$dbUser'@'127.0.0.1';
         CREATE USER '$dbUser'@'127.0.0.1' IDENTIFIED BY '$dbPassword';
         GRANT ALL PRIVILEGES ON *.* TO '$dbUser'@'127.0.0.1';
+        DROP USER IF EXISTS '$dbUser'@'172.17.0.1';
+        CREATE USER '$dbUser'@'172.17.0.1' IDENTIFIED BY '$dbPassword';
+        GRANT ALL PRIVILEGES ON *.* TO '$dbUser'@'172.17.0.1';
         FLUSH PRIVILEGES;
 EOF
 
     service mariadb restart
 
     # Allow all IP addresses outside the container.
-    echo -e "[mysqld]
-log_error = /var/log/mysql/error.log
-bind-address = 0.0.0.0
-skip-name-resolve" >> /etc/mysql/my.cnf
+    if grep -q "^\[mysqld\]" /etc/my.cnf; then
+        # Append settings to the [mysqld] section
+        sed -i '/^\[mysqld\]/a \
+log_error = /var/log/mysql/error.log\n
+bind-address = 0.0.0.0\n
+skip-name-resolve' /etc/my.cnf
+    else
+        # Add [mysqld] section and settings at the end of the file
+        echo -e "\n[mysqld]\nlog_error = /var/log/mysql/error.log\bind-address = 0.0.0.0\nskip-name-resolve" | sudo tee -a /etc/my.cnf
+    fi
 
 }
 
@@ -230,8 +272,8 @@ function setupIwebJava(){
     sed -i "/^pwAdmin_dir=/c\pwAdmin_dir=$DIR_WORKSPACES_HOME/pwadmin/bin" "$DIR_WORKSPACES_HOME/server"
 
     # Override file /home/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp: DB connection; game location; MD5 of iweb password.
-    iwebPasswordSalt=$(echo "${pwAdminUsername}" | tr '[:upper:]' '[:lower:]')
-    iwebPasswordHashBase64=$(echo -n "$pwAdminUsername" | openssl dgst -md5 -binary | base64)
+    iwebPasswordSalt=$(echo "${pwAdminRawPw}" | tr '[:upper:]' '[:lower:]')
+    iwebPasswordHashBase64=$(echo -n "$pwAdminRawPw" | openssl dgst -md5 -binary | base64)
     sed -i "/String db_host = /c\String db_host = \"$dbHost\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
     sed -i "/String db_user = /c\String db_user = \"$dbUser\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
     sed -i "/String db_password = /c\String db_password = \"$dbPassword\";" "$DIR_WORKSPACES_HOME/pwadmin/webapps/pwadmin/WEB-INF/.pwadminconf.jsp"
@@ -470,7 +512,7 @@ function composeStartAndStopScript(){
     connectionStringCommand="echo \"To connect to the DB from outside the Container, use: jdbc:mariadb://$dbHost:3306/$dbName?user=$dbUser&password=$dbPassword\""
     echo "$connectionStringCommand" >> start
 
-    echo "sleep 30" >> start
+    echo "sleep 10" >> start
     echo "echo \"=== COMPLETED! ======\"" >> start
     echo "echo \"\"" >> start
 
@@ -578,10 +620,10 @@ function main(){
     log "Step 9: Clean up."
     cleanUp
 
-    log "############################################################################"
+    log "###########################################################################"
     log "The Perfect World ${version} game server has been completed."
-    log "Run [./start] to start. Or [./start trace] to start and tracing game issues."
-    log "############################################################################"
+    log "Run [./start] to start. Or [./start log] to start and tracing game issues."
+    log "###########################################################################"
 
     endTime=$(date +%s)
     elapsedTime=$((endTime - startTime))
